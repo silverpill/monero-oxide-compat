@@ -1,0 +1,21 @@
+[package]
+name = "monero-oxide-compat"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.89.0"
+
+license = "MIT"
+
+[dependencies]
+curve25519-dalek = "4"
+hex = "0.4"
+monero = { version = "0.22", features = ["serde"] }
+monero-oxide = "0.1.0"
+monero-wallet = "0.2.0"
+rustc-hex = "2.1"
+serde = { version = "1", features = ["derive"] }
+thiserror = "2"
+zeroize = "1.8"
+
+[lints.clippy]
+unwrap_used = "warn"
