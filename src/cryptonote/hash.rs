@@ -19,6 +19,21 @@ impl Hash {
     pub const fn zero() -> Self {
         Self::repeat_byte(0u8)
     }
+
+    fn from_low_u64_with_fn(val: u64, to_bytes: fn(u64) -> [u8; 8]) -> Self {
+        // Copied from monero-rs & fixed-hash
+        let buf = to_bytes(val);
+        let capped = std::cmp::min(HASH_SIZE, 8);
+        let mut bytes = [0x0; std::mem::size_of::<Self>()];
+        bytes[(HASH_SIZE - capped)..].copy_from_slice(&buf[..capped]);
+        let mut ret = Self::zero();
+        ret.0.copy_from_slice(&bytes);
+        ret
+    }
+
+    pub fn from_low_u64_be(val: u64) -> Self {
+        Self::from_low_u64_with_fn(val, u64::to_be_bytes)
+    }
 }
 
 impl AsRef<[u8]> for Hash {
@@ -67,11 +82,20 @@ impl fmt::Display for Hash {
 #[cfg(test)]
 mod test {
     use super::*;
+    use monero::Hash as LegacyHash;
 
     #[test]
     fn test_hash_ser() {
         let hex = "2d0ad2566627b50cd45125e89e963433b212b368cd2d91662c44813ba9ec90c2";
         let hash = Hash::from_str(hex).unwrap();
         assert!(hash.to_string().starts_with("0x2d0a"));
+    }
+
+    #[test]
+    fn test_from_low_u64_be() {
+        let input = 123;
+        let hash = Hash::from_low_u64_be(input);
+        let legacy_hash = LegacyHash::from_low_u64_be(input);
+        assert_eq!(hash.0, legacy_hash.0);
     }
 }
