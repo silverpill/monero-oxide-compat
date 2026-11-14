@@ -4,10 +4,12 @@ use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::str::FromStr;
 
-use monero_wallet::address::{AddressError, AddressType, MoneroAddress as OxideAddress, Network};
+use monero_wallet::address::{MoneroAddress as OxideAddress, Network};
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Error as DeserializerError};
 
 use crate::util::key::{KeyPair, PublicKey};
+
+pub use monero_wallet::address::{AddressError, AddressType};
 
 const PAYMENT_ID_SIZE: usize = 8;
 
