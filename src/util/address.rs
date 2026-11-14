@@ -106,16 +106,28 @@ impl Address {
         Self(oxide_address)
     }
 
-    /// The network on which the address is valid and should be used.
-    pub fn network(&self) -> Network {
-        self.0.network()
-    }
-
     /// Create a standard address from a view pair which is valid on the given network.
     pub fn from_keypair(network: Network, keys: &KeyPair) -> Self {
         let public_spend = PublicKey::from_private_key(&keys.spend);
         let public_view = PublicKey::from_private_key(&keys.view);
         Self::standard(network, public_spend, public_view)
+    }
+
+    /// The network on which the address is valid and should be used.
+    pub fn network(&self) -> Network {
+        self.0.network()
+    }
+
+    pub fn addr_type(&self) -> &AddressType {
+        self.0.kind()
+    }
+
+    pub fn public_spend(&self) -> PublicKey {
+        PublicKey(self.0.spend())
+    }
+
+    pub fn public_view(&self) -> PublicKey {
+        PublicKey(self.0.view())
     }
 }
 
