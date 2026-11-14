@@ -34,6 +34,10 @@ impl Hash {
     pub fn from_low_u64_be(val: u64) -> Self {
         Self::from_low_u64_with_fn(val, u64::to_be_bytes)
     }
+
+    pub fn as_bytes(&self) -> &[u8] {
+        &self.0
+    }
 }
 
 impl AsRef<[u8]> for Hash {

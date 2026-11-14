@@ -24,7 +24,7 @@ impl PaymentId {
         Self::repeat_byte(0u8)
     }
 
-    fn as_bytes(&self) -> &[u8] {
+    pub fn as_bytes(&self) -> &[u8] {
         &self.0
     }
 }
