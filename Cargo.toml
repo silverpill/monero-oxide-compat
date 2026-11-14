@@ -12,6 +12,7 @@ hex = "0.4"
 monero = { version = "0.22", features = ["serde"] }
 monero-oxide = "0.1.0"
 monero-wallet = "0.2.0"
+rand = "0.8"
 rustc-hex = "2.1"
 serde = { version = "1", features = ["derive"] }
 thiserror = "2"

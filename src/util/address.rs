@@ -5,6 +5,7 @@ use std::hash::{Hash, Hasher};
 use std::str::FromStr;
 
 use monero_wallet::address::{MoneroAddress as OxideAddress, Network};
+use rand::{Rng, rngs::OsRng};
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Error as DeserializerError};
 
 use crate::util::key::{KeyPair, PublicKey};
@@ -24,6 +25,17 @@ impl PaymentId {
 
     pub const fn zero() -> Self {
         Self::repeat_byte(0u8)
+    }
+
+    /// Create a new hash with cryptographically random content.
+    pub fn random() -> Self {
+        // Adapted from fixed-hash crate
+        let mut rng = OsRng;
+        let mut payment_id = Self::zero();
+        for byte in payment_id.0.iter_mut() {
+            *byte = rng.r#gen();
+        }
+        payment_id
     }
 
     pub fn as_bytes(&self) -> &[u8] {
