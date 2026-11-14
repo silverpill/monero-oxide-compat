@@ -4,10 +4,10 @@ use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::str::FromStr;
 
-use monero_wallet::address::{AddressType, MoneroAddress as OxideAddress, Network};
+use monero_wallet::address::{AddressError, AddressType, MoneroAddress as OxideAddress, Network};
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Error as DeserializerError};
 
-use crate::util::key::{KeyPair, scalar_to_point};
+use crate::util::key::{KeyPair, PublicKey};
 
 const PAYMENT_ID_SIZE: usize = 8;
 
@@ -77,6 +77,33 @@ impl fmt::Display for PaymentId {
 pub struct Address(pub(crate) OxideAddress);
 
 impl Address {
+    /// Create a standard address which is valid on the given network.
+    pub fn standard(network: Network, public_spend: PublicKey, public_view: PublicKey) -> Self {
+        let oxide_address = OxideAddress::new(
+            network,
+            AddressType::Legacy, // Standard
+            public_spend.0,
+            public_view.0,
+        );
+        Self(oxide_address)
+    }
+
+    /// Create an address with an integrated payment id which is valid on the given network.
+    pub fn integrated(
+        network: Network,
+        public_spend: PublicKey,
+        public_view: PublicKey,
+        payment_id: PaymentId,
+    ) -> Address {
+        let oxide_address = OxideAddress::new(
+            network,
+            AddressType::LegacyIntegrated(payment_id.0),
+            public_spend.0,
+            public_view.0,
+        );
+        Self(oxide_address)
+    }
+
     /// The network on which the address is valid and should be used.
     pub fn network(&self) -> Network {
         self.0.network()
@@ -84,21 +111,23 @@ impl Address {
 
     /// Create a standard address from a view pair which is valid on the given network.
     pub fn from_keypair(network: Network, keys: &KeyPair) -> Self {
-        let public_spend = scalar_to_point(keys.spend.0);
-        let public_view = scalar_to_point(keys.view.0);
-        let oxide_address = OxideAddress::new(
-            network,
-            AddressType::Legacy, // Standard
-            public_spend,
-            public_view,
-        );
-        Self(oxide_address)
+        let public_spend = PublicKey::from_private_key(&keys.spend);
+        let public_view = PublicKey::from_private_key(&keys.view);
+        Self::standard(network, public_spend, public_view)
     }
 }
 
 impl fmt::Display for Address {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(formatter, "{}", self.0)
+    }
+}
+
+impl FromStr for Address {
+    type Err = AddressError;
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        let oxide_address = OxideAddress::from_str_with_unchecked_network(value)?;
+        Ok(Self(oxide_address))
     }
 }
 
@@ -140,5 +169,55 @@ mod test {
         let hex = "2d0ad2566627b50c";
         let hash = PaymentId::from_str(hex).unwrap();
         assert!(hash.to_string().starts_with("0x2d0a"));
+    }
+
+    // Copied from monero-rs
+    #[test]
+    fn deserialize_address() {
+        let pub_spend = PublicKey::from_slice(&[
+            226, 187, 17, 117, 6, 188, 105, 177, 58, 207, 205, 42, 205, 229, 251, 129, 118, 253,
+            21, 245, 49, 67, 36, 75, 62, 12, 80, 90, 244, 194, 108, 210,
+        ])
+        .unwrap();
+        let pub_view = PublicKey::from_slice(&[
+            220, 115, 195, 55, 189, 88, 136, 78, 63, 32, 41, 33, 168, 205, 245, 3, 139, 234, 109,
+            64, 198, 179, 53, 108, 247, 77, 183, 25, 172, 59, 113, 115,
+        ])
+        .unwrap();
+
+        let address = "4ADT1BtbxqEWeMKp9GgPr2NeyJXXtNxvoDawpyA4WpzFcGcoHUvXeijE66DNfohE9r1bQYaBiQjEtKE7CtkTdLwiDznFzra";
+        let add = Address::from_str(address);
+        assert_eq!(
+            Ok(Address::standard(Network::Mainnet, pub_spend, pub_view)),
+            add
+        );
+    }
+
+    // Copied from monero-rs
+    #[test]
+    fn deserialize_integrated_address() {
+        let pub_spend = PublicKey::from_slice(&[
+            17, 81, 127, 230, 166, 35, 81, 36, 161, 94, 154, 206, 60, 98, 195, 62, 12, 11, 234,
+            133, 228, 196, 77, 3, 68, 188, 84, 78, 94, 109, 238, 44,
+        ])
+        .unwrap();
+        let pub_view = PublicKey::from_slice(&[
+            115, 212, 211, 204, 198, 30, 73, 70, 235, 52, 160, 200, 39, 215, 134, 239, 249, 129,
+            47, 156, 14, 116, 18, 191, 112, 207, 139, 208, 54, 59, 92, 115,
+        ])
+        .unwrap();
+        let payment_id = PaymentId([88, 118, 184, 183, 41, 150, 255, 151]);
+
+        let address = "4Byr22j9M2878Mtyb3fEPcBNwBZf5EXqn1Yi6VzR46618SFBrYysab2Cs1474CVDbsh94AJq7vuV3Z2DRq4zLcY3LHzo1Nbv3d8J6VhvCV";
+        let add = Address::from_str(address);
+        assert_eq!(
+            Ok(Address::integrated(
+                Network::Mainnet,
+                pub_spend,
+                pub_view,
+                payment_id
+            )),
+            add
+        );
     }
 }

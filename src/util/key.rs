@@ -28,7 +28,7 @@ pub enum Error {
 
 // Scalar: private key
 // Point: public key
-pub(crate) fn scalar_to_point(scalar: Scalar) -> Point {
+fn scalar_to_point(scalar: Scalar) -> Point {
     Point::from(&scalar.into() * ED25519_BASEPOINT_TABLE)
 }
 
@@ -70,7 +70,7 @@ impl PublicKey {
     }
 
     /// Deserialize a public key from a slice.
-    fn from_slice(data: &[u8]) -> Result<PublicKey, Error> {
+    pub(crate) fn from_slice(data: &[u8]) -> Result<PublicKey, Error> {
         // This code was copied from monero-rs
         let point = CompressedEdwardsY::from_slice(data).map_err(|_| Error::InvalidPoint)?;
         // Check that the point is valid and canonical.
