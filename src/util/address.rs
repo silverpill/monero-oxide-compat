@@ -10,7 +10,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Error as Deser
 
 use crate::util::key::{KeyPair, PublicKey};
 
-pub use monero_wallet::address::{AddressError, AddressType};
+pub use monero_wallet::address::{AddressError as Error, AddressType};
 
 const PAYMENT_ID_SIZE: usize = 8;
 
@@ -150,7 +150,7 @@ impl fmt::Display for Address {
 }
 
 impl FromStr for Address {
-    type Err = AddressError;
+    type Err = Error;
     fn from_str(value: &str) -> Result<Self, Self::Err> {
         let oxide_address = OxideAddress::from_str_with_unchecked_network(value)?;
         Ok(Self(oxide_address))
