@@ -7,3 +7,7 @@ Differences in API compared to `monero-rs`:
 - `get_subaddress()` returns `Result`.
 - `Address::network()` is a method.
 - `deserialize()` can only deserialize into `Block`.
+- `AddressType` variants:
+  - `Standard` replaced with `Legacy`.
+  - `Integrated(PaymentId)` replaced with `LegacyIntegrated([u8; 32])`.
+  - Added `Featured`.
