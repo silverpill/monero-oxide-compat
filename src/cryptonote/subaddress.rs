@@ -18,7 +18,7 @@ pub enum SubaddressError {
 }
 
 /// A sub-address index with `major` and `minor` indexes, primary address is `0/0`.
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Index {
     pub major: u32,
     pub minor: u32,
