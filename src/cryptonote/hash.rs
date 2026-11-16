@@ -83,6 +83,19 @@ impl fmt::Display for Hash {
     }
 }
 
+// Copied from fixed-hash
+impl fmt::LowerHex for Hash {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        if f.alternate() {
+            write!(f, "0x")?;
+        }
+        for i in &self.0[..] {
+            write!(f, "{:02x}", i)?;
+        }
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -93,6 +106,7 @@ mod test {
         let hex = "2d0ad2566627b50cd45125e89e963433b212b368cd2d91662c44813ba9ec90c2";
         let hash = Hash::from_str(hex).unwrap();
         assert!(hash.to_string().starts_with("0x2d0a"));
+        assert_eq!(format!("{hash:x}"), hex);
     }
 
     #[test]
