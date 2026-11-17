@@ -5,7 +5,7 @@ A wrapper around [monero-oxide](https://github.com/monero-oxide/monero-oxide) li
 Differences in API compared to `monero-rs`:
 
 - `get_subaddress()` returns `Result`.
-- `Address::network()` is a method.
+- `Address::network()`, `addr_type()`, `public_spend()` and `public_view()` are methods, not struct fields.
 - `deserialize()` can only deserialize into `Block`.
 - `AddressType` variants:
   - `Standard` replaced with `Legacy`.
