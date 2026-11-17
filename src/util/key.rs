@@ -10,7 +10,7 @@ use monero_wallet::{
     ed25519::{CompressedPoint, Point, Scalar},
 };
 use thiserror::Error;
-use zeroize::Zeroizing;
+use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
 
 /// Potential errors encountered during key decoding.
 #[derive(Error, Debug)]
@@ -35,7 +35,7 @@ fn scalar_to_point(scalar: Scalar) -> Point {
 }
 
 /// A private key, a valid curve25519 scalar.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Zeroize, ZeroizeOnDrop)]
 pub struct PrivateKey(pub(crate) Scalar);
 
 impl PrivateKey {
@@ -106,21 +106,21 @@ impl FromStr for PublicKey {
 }
 
 /// Two private keys representing the view and the spend keys.
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct KeyPair {
     pub view: PrivateKey,
     pub spend: PrivateKey,
 }
 
 /// View pair to scan transaction outputs and retrieve amounts, but can't spend outputs.
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct ViewPair {
     pub view: PrivateKey,
     pub spend: PublicKey,
 }
 
 impl ViewPair {
-    pub(crate) fn to_oxide(self) -> Result<OxideViewPair, ViewPairError> {
+    pub(crate) fn to_oxide(&self) -> Result<OxideViewPair, ViewPairError> {
         OxideViewPair::new(self.spend.0, Zeroizing::new(self.view.0))
     }
 }
@@ -129,7 +129,7 @@ impl From<&KeyPair> for ViewPair {
     fn from(keys: &KeyPair) -> Self {
         let spend = scalar_to_point(keys.spend.0);
         Self {
-            view: keys.view,
+            view: keys.view.clone(),
             spend: PublicKey(spend),
         }
     }
