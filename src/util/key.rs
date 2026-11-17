@@ -38,8 +38,8 @@ pub struct PrivateKey(pub(crate) Scalar);
 
 impl PrivateKey {
     pub fn from_slice(data: &[u8]) -> Result<Self, Error> {
-        let mut data = Cursor::new(data.to_vec());
-        let scalar = Scalar::read(&mut data)?;
+        let mut cursor = Cursor::new(data);
+        let scalar = Scalar::read(&mut cursor)?;
         Ok(Self(scalar))
     }
 }
@@ -71,8 +71,8 @@ impl PublicKey {
 
     /// Deserialize a public key from a slice.
     pub fn from_slice(data: &[u8]) -> Result<PublicKey, Error> {
-        let mut data = Cursor::new(data.to_vec());
-        let compressed_point = CompressedPoint::read(&mut data)?;
+        let mut cursor = Cursor::new(data);
+        let compressed_point = CompressedPoint::read(&mut cursor)?;
         let point = compressed_point.decompress().ok_or(Error::InvalidPoint)?;
         Ok(PublicKey(point))
     }

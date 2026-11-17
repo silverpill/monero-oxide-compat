@@ -18,7 +18,7 @@ pub enum Error {
 /// Deserialize a block from a byte vector, will error if said deserialization doesn't consume
 /// the entire vector.
 pub fn deserialize(bytes: &[u8]) -> Result<Block, Error> {
-    let mut cur = Cursor::new(bytes.to_vec());
-    let oxide_block = OxideBlock::read(&mut cur)?;
+    let mut cursor = Cursor::new(bytes);
+    let oxide_block = OxideBlock::read(&mut cursor)?;
     Ok(Block(oxide_block))
 }
