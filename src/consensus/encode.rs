@@ -13,6 +13,9 @@ pub enum Error {
     /// And I/O error.
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
+    /// Invalid input length
+    #[error("Invalid length")]
+    InvalidLength,
 }
 
 /// Deserialize a block from a byte vector, will error if said deserialization doesn't consume
@@ -20,5 +23,8 @@ pub enum Error {
 pub fn deserialize(bytes: &[u8]) -> Result<Block, Error> {
     let mut cursor = Cursor::new(bytes);
     let oxide_block = OxideBlock::read(&mut cursor)?;
+    if cursor.position() as usize != bytes.len() {
+        return Err(Error::InvalidLength);
+    };
     Ok(Block(oxide_block))
 }

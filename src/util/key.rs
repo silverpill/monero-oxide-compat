@@ -21,6 +21,8 @@ pub enum Error {
     /// Invalid point on the curve.
     #[error("Invalid point on the curve")]
     InvalidPoint,
+    #[error("Invalid key length")]
+    InvalidLength,
     /// Hex parsing error.
     #[error("Hex error: {0}")]
     Hex(#[from] hex::FromHexError),
@@ -40,6 +42,9 @@ impl PrivateKey {
     pub fn from_slice(data: &[u8]) -> Result<Self, Error> {
         let mut cursor = Cursor::new(data);
         let scalar = Scalar::read(&mut cursor)?;
+        if cursor.position() as usize != data.len() {
+            return Err(Error::InvalidLength);
+        };
         Ok(Self(scalar))
     }
 }
@@ -73,6 +78,9 @@ impl PublicKey {
     pub fn from_slice(data: &[u8]) -> Result<PublicKey, Error> {
         let mut cursor = Cursor::new(data);
         let compressed_point = CompressedPoint::read(&mut cursor)?;
+        if cursor.position() as usize != data.len() {
+            return Err(Error::InvalidLength);
+        };
         let point = compressed_point.decompress().ok_or(Error::InvalidPoint)?;
         Ok(PublicKey(point))
     }
@@ -151,5 +159,36 @@ mod tests {
             PublicKey::from_str("eac2cc96e0ae684388e3185d5277e51313bff98b9ad4a12dcd9205f20d37f1a3")
                 .is_ok()
         );
+    }
+
+    #[test]
+    fn private_key_length_validation() {
+        let key_hex = concat!(
+            "77916d0cd56ed1920aef6ca56d8a41bac915b68e4c46a589e0956e27a7b77404",
+            "23"
+        );
+        let result = PrivateKey::from_str(key_hex);
+        assert!(result.is_err());
+        // monero-oxide
+        let mut data = Cursor::new([0; 33]);
+        let result = Scalar::read(&mut data);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn public_key_length_validation() {
+        let key_hex = concat!(
+            "eac2cc96e0ae684388e3185d5277e51313bff98b9ad4a12dcd9205f20d37f1a3",
+            "23"
+        );
+        let result = PublicKey::from_str(key_hex);
+        assert!(result.is_err());
+        // monero-oxide
+        let mut cursor = Cursor::new([0; 33]);
+        let result = CompressedPoint::read(&mut cursor);
+        assert!(result.is_ok());
+        let mut cursor = Cursor::new([0; 31]);
+        let result = CompressedPoint::read(&mut cursor);
+        assert!(result.is_err());
     }
 }
