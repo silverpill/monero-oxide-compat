@@ -4,10 +4,10 @@ use std::fmt;
 use std::io::Cursor;
 use std::str::FromStr;
 
-use curve25519_dalek::{constants::ED25519_BASEPOINT_TABLE, edwards::CompressedEdwardsY};
+use curve25519_dalek::constants::ED25519_BASEPOINT_TABLE;
 use monero_wallet::{
     ViewPair as OxideViewPair, ViewPairError,
-    ed25519::{Point, Scalar},
+    ed25519::{CompressedPoint, Point, Scalar},
 };
 use thiserror::Error;
 use zeroize::Zeroizing;
@@ -70,23 +70,11 @@ impl PublicKey {
     }
 
     /// Deserialize a public key from a slice.
-    pub(crate) fn from_slice(data: &[u8]) -> Result<PublicKey, Error> {
-        // This code was copied from monero-rs
-        let point = CompressedEdwardsY::from_slice(data).map_err(|_| Error::InvalidPoint)?;
-        // Check that the point is valid and canonical.
-        // https://github.com/dalek-cryptography/curve25519-dalek/issues/380
-        let oxide_point = match point.decompress() {
-            Some(point) => {
-                if point.compress().as_bytes() != data {
-                    return Err(Error::InvalidPoint);
-                }
-                Point::from(point)
-            }
-            None => {
-                return Err(Error::InvalidPoint);
-            }
-        };
-        Ok(PublicKey(oxide_point))
+    pub fn from_slice(data: &[u8]) -> Result<PublicKey, Error> {
+        let mut data = Cursor::new(data.to_vec());
+        let compressed_point = CompressedPoint::read(&mut data)?;
+        let point = compressed_point.decompress().ok_or(Error::InvalidPoint)?;
+        Ok(PublicKey(point))
     }
 
     /// Generate a public key from the private key.
