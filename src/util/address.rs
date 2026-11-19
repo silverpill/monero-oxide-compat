@@ -141,6 +141,11 @@ impl Address {
     pub fn public_view(&self) -> PublicKey {
         PublicKey(self.0.view())
     }
+
+    /// Returns `monero_address::MoneroAddress`
+    pub fn as_oxide(&self) -> &OxideAddress {
+        &self.0
+    }
 }
 
 impl fmt::Display for Address {

@@ -6,6 +6,13 @@ use monero_oxide::block::Block as OxideBlock;
 #[allow(dead_code)]
 pub struct Block(pub(crate) OxideBlock);
 
+impl Block {
+    /// Returns `monero_oxide::block::Block`
+    pub fn as_oxide(&self) -> &OxideBlock {
+        &self.0
+    }
+}
+
 #[cfg(test)]
 mod test {
     use crate::consensus::encode::deserialize;
