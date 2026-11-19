@@ -32,7 +32,7 @@ A wrapper around [monero-oxide](https://github.com/monero-oxide/monero-oxide) li
 - [x] `util::address::AddressType`
   - Replaced with `monero_address::AddressType`:
     - Replaced `Standard` with `Legacy`.
-    - Replaced `Integrated(PaymentId)` with `LegacyIntegrated([u8; 32])`.
+    - Replaced `Integrated(PaymentId)` with `LegacyIntegrated([u8; 8])`.
     - Added `Featured`.
 - [x] `util::amount`
 - [x] `util::key::KeyPair`
